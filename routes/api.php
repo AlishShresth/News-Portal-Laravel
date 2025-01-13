@@ -33,8 +33,8 @@ Route::middleware(['auth:sanctum'])->group(function () {
 Route::get('articles', [ArticleController::class, 'index'])->name('articles.index');
 Route::post('articles', [ArticleController::class, 'store'])->name('articles.store')->middleware(['auth:sanctum', 'role:editor']);
 Route::get('articles/{article}', [ArticleController::class, 'show'])->name('articles.show');
-Route::patch('articles/{article}', [ArticleController::class, 'update'])->name('article.update')->middleware(['auth:sanctum', 'role:editor']);
-Route::delete('articles/{article}', [ArticleController::class, 'destroy'])->name('articles.delete')->middleware(['auth:sanctum', 'role:editor']);
+Route::patch('articles/{article}', [ArticleController::class, 'update'])->name('article.update')->middleware(['auth:sanctum', 'role:editor'])->can('edit','article');
+Route::delete('articles/{article}', [ArticleController::class, 'destroy'])->name('articles.delete')->middleware(['auth:sanctum', 'role:editor'])->can('edit', 'article');
 
 Route::get('categories', [CategoryController::class, 'index'])->name('categories.index');
 Route::post('categories', [CategoryController::class, 'store'])->name('categories.store');
