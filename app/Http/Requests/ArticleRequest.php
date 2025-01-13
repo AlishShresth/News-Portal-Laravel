@@ -23,7 +23,6 @@ class ArticleRequest extends FormRequest
     {
         return [
             'title' => 'required|string',
-            'slug' => 'required|string|unique:articles,slug',
             'content' => 'required|string',
             'summary' => 'nullable|string',
             'status' => 'required|in:draft,published,archived',

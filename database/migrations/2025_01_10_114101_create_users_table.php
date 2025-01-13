@@ -16,8 +16,7 @@ return new class extends Migration
             $table->string('name');
             $table->string('email')->unique();
             $table->string('password');
-            $table->foreignId('role_id');
-            $table->string('profile_picture')->nullable();
+            $table->string('role')->default('editor');            $table->string('profile_picture')->nullable();
             $table->timestamps();
         });
     }

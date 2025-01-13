@@ -6,6 +6,7 @@ use App\Http\Requests\TagRequest;
 use App\Models\Tag;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Str;
 
 class TagController extends Controller
 {
@@ -29,7 +30,15 @@ class TagController extends Controller
     public function store(TagRequest $request)
     {
         try {
-            $tag = Tag::create($request->validated());
+            $validatedData = $request->validated();
+            $slug = Str::slug($validatedData['name']);
+            $count = 1;
+            while(Tag::where('slug', $slug)->exists()){
+                $slug = Str::slug($validatedData['name']) . '-' . $count;
+                $count++;
+            }
+            $validatedData['slug'] = $slug;
+            $tag = Tag::create($validatedData);
             return response()->json(['data' => $tag, 'message' => 'Tag created successfully'], 201);
         } catch(\Exception $e){
             Log::error($e->getMessage());

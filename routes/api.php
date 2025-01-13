@@ -22,7 +22,6 @@ Route::post('reset-password', [ResetPasswordController::class, 'reset']);
 Route::post('email/verify', [VerificationController::class, 'verify'])->middleware('auth:sanctum');
 Route::post('email/resent', [VerificationController::class, 'resend'])->middleware('auth:sanctum');
 
-
 Route::post('logout', [LoginController::class, 'logout'])->middleware('auth:sanctum');
 
 Route::middleware(['auth:sanctum'])->group(function () {

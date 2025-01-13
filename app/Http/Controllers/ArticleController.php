@@ -4,7 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Http\Requests\ArticleRequest;
 use App\Models\Article;
-use Illuminate\Http\Request;
+use Illuminate\Support\Str;
 use Illuminate\Support\Facades\Log;
 
 class ArticleController extends Controller
@@ -30,8 +30,22 @@ class ArticleController extends Controller
     public function store(ArticleRequest $request)
     {
         try {
-            $article = Article::create($request->validated());
-            $article->tags()->sync($request->tags);
+            $validatedData = $request->validated();
+            $slug = Str::slug($validatedData['title']);
+            
+            // Check if slug exists
+            $count = 1;
+            while (Article::where('slug', $slug)->exists()) {
+                $slug = Str::slug($validatedData['title']) . '-' . $count;
+                $count++;
+            }
+            
+            $validatedData['slug'] = $slug;
+            $article = Article::create($validatedData);
+    
+            if ($request->has('tags')) {
+                $article->tags()->attach($request->tags);
+            }
             return response()->json(['data' => $article, 'message' => 'Article created successfully'], 201);
         } catch (\Exception $e) {
             Log::error($e->getMessage());
@@ -45,6 +59,10 @@ class ArticleController extends Controller
     public function show(Article $article)
     {
         try{
+            if (!$article) {
+                return response()->json(['message' => 'Article not found'], 404);
+            }
+    
             $article->load(['user', 'category', 
             'tags', 'comments']);
             return response()->json(['data' => $article], 200);

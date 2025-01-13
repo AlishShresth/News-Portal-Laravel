@@ -4,7 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Http\Requests\CategoryRequest;
 use App\Models\Category;
-use Illuminate\Http\Request;
+use Illuminate\Support\Str;
 use Illuminate\Support\Facades\Log;
 
 class CategoryController extends Controller
@@ -29,7 +29,16 @@ class CategoryController extends Controller
     public function store(CategoryRequest $request)
     {
         try {
-            $category = Category::create($request->validated());
+            $validatedData = $request->validated();
+            $slug=Str::slug($validatedData['name']);
+            $count = 1;
+            while(Category::where('slug', $slug)->exists()){
+                $slug = Str::slug($validatedData['name']) . '-' . $count;
+                $count++;
+            }
+            $validatedData['slug'] = $slug;
+
+            $category = Category::create($validatedData);
             return response()->json(['data' => $category, 'message' => 'Category created successfully'], 201);
         } catch (\Exception $e) {
             Log::error($e->getMessage());

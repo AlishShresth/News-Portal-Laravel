@@ -23,7 +23,6 @@ class User extends Authenticatable
         'name',
         'email',
         'password',
-        'role_id',
         'profile_picture',
     ];
 
@@ -50,11 +49,18 @@ class User extends Authenticatable
         ];
     }
 
-    public function articles(){
+    public function articles()
+    {
         return $this->hasMany(Article::class);
     }
 
-    public function comments(){
+    public function comments()
+    {
         return $this->hasMany(Comment::class);
+    }
+    public function hasRole($role)
+    {
+        // Implement your role checking logic here
+        return $this->role === $role; // This is just an example, adjust based on your role structure
     }
 }
