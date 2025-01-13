@@ -1,6 +1,11 @@
 <?php
 
+use App\Http\Controllers\Auth\LoginController;
+use App\Http\Controllers\Auth\RegisterController;
 use App\Http\Controllers\ArticleController;
+use App\Http\Controllers\Auth\ForgotPasswordController;
+use App\Http\Controllers\Auth\ResetPasswordController;
+use App\Http\Controllers\Auth\VerificationController;
 use App\Http\Controllers\CategoryController;
 use App\Http\Controllers\CommentController;
 use App\Http\Controllers\MultimediaController;
@@ -8,8 +13,20 @@ use App\Http\Controllers\TagController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
+
+Route::post('register', [RegisterController::class, 'register']);
+Route::post('login', [LoginController::class, 'login']);
+Route::post('forgot-password', [ForgotPasswordController::class, 'sendResetLinkEmail']);
+Route::post('reset-password', [ResetPasswordController::class, 'reset']);
+
+Route::post('email/verify', [VerificationController::class, 'verify'])->middleware('auth:sanctum');
+Route::post('email/resent', [VerificationController::class, 'resend'])->middleware('auth:sanctum');
+
+
+Route::post('logout', [LoginController::class, 'logout'])->middleware('auth:sanctum');
+
 Route::middleware(['auth:sanctum'])->group(function () {
-  Route::get('/user', function (Request $request) {
+  Route::get('user', function (Request $request) {
     return $request->user();
   });
 });
