@@ -15,17 +15,32 @@ class RegisterController extends Controller
             'name' => 'required|string|max:255',
             'email' => 'required|string|email|max:255|unique:users',
             'password' => 'required|string|min:8|confirmed',
+            'profile_picture' => 'nullable|image|mimes:jpeg,png,jpg',
         ]);
+
+        $profileImagePath = null;
+        if ($request->hasFile('profile_picture')) {
+            $profileImagePath = $request->file('profile_picture')->store('profile_pictures', 'public');
+        }
 
         $user = User::create([
             'name' => $request->name,
             'email' => $request->email,
             'password' => Hash::make($request->password),
             'role_id' => 2,
+            'profile_picture' => $profileImagePath,
         ]);
 
         $token = $user->createToken('auth_token')->plainTextToken;
 
-        return response()->json(['message' => 'Registration successful', 'access_token' => $token, 'token_type' => 'Bearer',], 201);
+        $user = User::find($user->id);
+
+        return response()->json([
+            'message' => 'Registration successful',
+            'token_type' => 'Bearer',
+            'access_token' => $token,
+            'data' => $user,
+            'profile_picture_url' => $profileImagePath ? asset('storage/' . $profileImagePath) : null
+        ], 201);
     }
 }

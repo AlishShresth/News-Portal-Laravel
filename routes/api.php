@@ -37,8 +37,9 @@ Route::patch('articles/{article}', [ArticleController::class, 'update'])->name('
 Route::delete('articles/{article}', [ArticleController::class, 'destroy'])->name('articles.delete')->middleware(['auth:sanctum', 'role:editor'])->can('edit', 'article');
 
 Route::get('categories', [CategoryController::class, 'index'])->name('categories.index');
-Route::post('categories', [CategoryController::class, 'store'])->name('categories.store');
-Route::patch('categories/{category}', [CategoryController::class, 'update'])->name('categories.update');
+Route::get('categories/{category}', [CategoryController::class, 'show'])->name('categories.show');
+Route::post('categories', [CategoryController::class, 'store'])->name('categories.store')->middleware(['auth:sanctum', 'role:admin']);
+Route::patch('categories/{category}', [CategoryController::class, 'update'])->name('categories.update')->middleware(['auth:sanctum', 'role:admin']);
 Route::delete('categories/{category}', [CategoryController::class, 'destroy'])->name('categories.destroy');
 
 Route::post('comments', [CommentController::class, 'store'])->name('comments.store');

@@ -29,6 +29,7 @@ class MultimediaController extends Controller
                 'path' => $path,
                 'alt_text' => $request->alt_text,
                 'caption' => $request->caption,
+                'article_id' => $request->article_id
             ]);
             return response()->json(['message' => 'File uploaded successfully', 'data' => $multimedia], 201);
         } catch (\Exception $e){

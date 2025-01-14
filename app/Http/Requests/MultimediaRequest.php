@@ -25,7 +25,7 @@ class MultimediaRequest extends FormRequest
             'file' => 'required|file|mimes:jpeg,png,mp4|max:30480',
             'alt_text' => 'nullable|string',
             'caption' => 'nullable|string',
-            'article_id' => 'required|exists:news,id',
+            'article_id' => 'required|exists:articles,id',
         ];
     }
 }

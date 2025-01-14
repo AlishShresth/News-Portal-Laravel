@@ -4,6 +4,8 @@ namespace App\Http\Controllers;
 
 use App\Http\Requests\ArticleRequest;
 use App\Models\Article;
+use Illuminate\Database\Eloquent\ModelNotFoundException;
+use Illuminate\Http\Request;
 use Illuminate\Support\Str;
 use Illuminate\Support\Facades\Log;
 
@@ -15,7 +17,7 @@ class ArticleController extends Controller
     public function index()
     {
         try {
-            $articles = Article::with(['user', 'category', 'tags'])->paginate(10);
+            $articles = Article::with(['user', 'category', 'tags', 'multimedia'])->paginate(10);
             return response()->json(['data' => $articles], 200);
         } catch (\Exception $e) {
             Log::error($e->getMessage());
@@ -32,17 +34,17 @@ class ArticleController extends Controller
         try {
             $validatedData = $request->validated();
             $slug = Str::slug($validatedData['title']);
-            
+
             // Check if slug exists
             $count = 1;
             while (Article::where('slug', $slug)->exists()) {
                 $slug = Str::slug($validatedData['title']) . '-' . $count;
                 $count++;
             }
-            
+
             $validatedData['slug'] = $slug;
             $article = Article::create($validatedData);
-    
+
             if ($request->has('tags')) {
                 $article->tags()->attach($request->tags);
             }
@@ -58,15 +60,19 @@ class ArticleController extends Controller
      */
     public function show(Article $article)
     {
-        try{
-            if (!$article) {
-                return response()->json(['message' => 'Article not found'], 404);
-            }
-    
-            $article->load(['user', 'category', 
-            'tags', 'comments']);
+        try {
+            $article->load([
+                'user',
+                'category',
+                'tags',
+                'comments',
+                'multimedia'
+            ]);
             return response()->json(['data' => $article], 200);
-        } catch(\Exception $e){
+        } catch (ModelNotFoundException $e) {
+            Log::error('Article not found: ' . $e->getMessage());
+            return response()->json(['message' => 'Article not found', 'error' => $e->getMessage()], 404);
+        } catch (\Exception $e) {
             Log::error($e->getMessage());
             return response()->json(['error' => $e->getMessage(), 'message' => 'Failed to fetch article'], 500);
         }
@@ -77,13 +83,55 @@ class ArticleController extends Controller
      */
     public function update(ArticleRequest $request, Article $article)
     {
-        try{
-            $article->update($request->validated());
-            $article->tags()->sync($request->tags);
-            return response()->json(['data' => $article, 'message' => 'Article updated successfully'], 200);
-        } catch(\Exception $e){
-            Log::error($e->getMessage());
-            return response()->json(['error' => $e->getMessage(), 'message' => 'Failed to update article'], 500);
+        try {
+            // Validate data
+            $validatedData = $request->validated();
+
+            // Update slug if needed
+            if ($request->title) {
+                $slug = Str::slug($validatedData['title']);
+                $count = 1;
+                while (Article::where('slug', $slug)->exists()) {
+                    $slug = Str::slug($validatedData['title']) . '-' . $count;
+                    $count++;
+                }
+                $validatedData['slug'] = $slug;
+            }
+
+            // Merge default values for missing fields
+            $data = array_merge($article->only([
+                'title',
+                'content',
+                'summary',
+                'status',
+                'user_id',
+                'category_id'
+            ]), $validatedData);
+
+            // Update the article
+            $article->update($data);
+
+            // Sync tags if provided
+            if (isset($validatedData['tags'])) {
+                $article->tags()->sync($validatedData['tags']);
+            }
+
+            // Reload the article with its relationships
+            $updatedArticle = $article->load(['user', 'category', 'tags', 'multimedia']);
+
+            // Return success response
+            return response()->json([
+                'data' => $updatedArticle,
+                'message' => 'Article updated successfully'
+            ], 200);
+        } catch (\Exception $e) {
+            Log::error('Failed to update article: ' . $e->getMessage());
+
+            // Return error response
+            return response()->json([
+                'error' => $e->getMessage(),
+                'message' => 'Failed to update article'
+            ], 500);
         }
     }
 
@@ -92,10 +140,10 @@ class ArticleController extends Controller
      */
     public function destroy(Article $article)
     {
-        try{
+        try {
             $article->delete();
             return response()->json(['message' => 'Article deleted successfully'], 200);
-        } catch(\Exception $e){
+        } catch (\Exception $e) {
             Log::error($e->getMessage());
             return response()->json(['error' => $e->getMessage(), 'message' => 'Failed to delete article'], 500);
         }

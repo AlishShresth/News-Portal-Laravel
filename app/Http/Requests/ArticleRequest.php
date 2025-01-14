@@ -22,12 +22,12 @@ class ArticleRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'title' => 'required|string',
-            'content' => 'required|string',
+            'title' => 'sometimes|required|string',
+            'content' => 'sometimes|required|string',
             'summary' => 'nullable|string',
-            'status' => 'required|in:draft,published,archived',
-            'user_id' => 'required|exists:users,id',
-            'category_id' => 'required|exists:categories,id',
+            'status' => 'sometimes|required|in:draft,published,archived',
+            'user_id' => 'sometimes|required|exists:users,id',
+            'category_id' => 'sometimes|required|exists:categories,id',
             'tags' => 'nullable|array',
             'tags.*' => 'exists:tags,id',
         ];
